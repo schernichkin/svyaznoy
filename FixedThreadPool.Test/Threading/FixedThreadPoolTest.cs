@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Threading;
 using System;
+using System.Collections.Generic;
 
 namespace Svyaznoy.Threading
 {
@@ -14,7 +15,7 @@ namespace Svyaznoy.Threading
             var target = CreateFixedThreadPool(10, true);
 
             Wait();
-            
+
             Assert.IsNotNull(target.TaskQueue);
             Assert.AreEqual(ThreadPoolStatus_Accessor.Running, target.Status);
             Assert.AreEqual(10, target.MaxThreadCount);
@@ -40,7 +41,7 @@ namespace Svyaznoy.Threading
         public void ReuseOneThreadTest()
         {
             var target = CreateFixedThreadPool(4, false);
-            
+
             Assert.AreEqual(true, target.Execute(new TaskMock(), Priority.High));
             Wait();
             Assert.AreEqual(3, target.DeferedThreadCount);
@@ -48,7 +49,7 @@ namespace Svyaznoy.Threading
             Assert.AreEqual(true, target.Execute(new TaskMock(), Priority.High));
             Wait();
             Assert.AreEqual(3, target.DeferedThreadCount);
-            
+
             Assert.AreEqual(true, target.Execute(new TaskMock(), Priority.High));
             Wait();
             Assert.AreEqual(3, target.DeferedThreadCount);
@@ -78,7 +79,7 @@ namespace Svyaznoy.Threading
         {
             var target = CreateFixedThreadPool(4, false);
             target.Stop();
-            AssertIsProperlyStopped( target);
+            AssertIsProperlyStopped(target);
         }
 
         [TestMethod()]
@@ -96,11 +97,62 @@ namespace Svyaznoy.Threading
         [TestMethod()]
         public void StopTest_MultiplyWaiters()
         {
-            throw new NotImplementedException();
+            var target = CreateFixedThreadPool(2, false);
+            var heavyTask = new TaskMock(Wait);
+            Assert.AreEqual(true, target.Execute(heavyTask, Priority.High));
+            Assert.AreEqual(true, target.Execute(heavyTask, Priority.Medium));
+            Assert.AreEqual(true, target.Execute(heavyTask, Priority.Low));
+            Assert.AreEqual(true, target.Execute(heavyTask, Priority.Low));
+
+            Exception deferedException = null;
+            var waitersCounter = new CountdownEvent(4);
+
+            for (var i = 0; i < 4; i++)
+            {
+                new Thread(() =>
+                {
+                    target.Stop();
+                    try
+                    { // each thread should see properly stopped pool.
+                        AssertIsProperlyStopped(target);
+                    }
+                    catch (Exception e)
+                    {
+                        deferedException = e;
+                    }
+                    waitersCounter.Signal();
+                }).Start();
+            }
+
+            target.Stop();
+            AssertIsProperlyStopped(target);
+
+            waitersCounter.Wait(); // if thread pool works properly, will never blocked here
+            
+            if (deferedException != null)
+            {
+                throw deferedException;
+            }
         }
 
         [TestMethod()]
         public void ScheduleAfterStopTest()
+        {
+            var target = CreateFixedThreadPool(4, false);
+
+            Assert.AreEqual(true, target.Execute(new TaskMock(), Priority.High));
+            Assert.AreEqual(true, target.Execute(new TaskMock(), Priority.High));
+            Assert.AreEqual(true, target.Execute(new TaskMock(), Priority.High));
+
+            target.Stop();
+            AssertIsProperlyStopped(target);
+
+            Assert.AreEqual(false, target.Execute(new TaskMock(), Priority.High));
+            AssertIsProperlyStopped(target);
+        }
+
+        [TestMethod()]
+        public void TestWithUnhandledExceptions()
         {
             throw new NotImplementedException();
         }
@@ -114,17 +166,18 @@ namespace Svyaznoy.Threading
         [TestMethod()]
         public void ReuseThreadsTest()
         {
-            var target = CreateFixedThreadPool(4, false);
+            var target = CreateFixedThreadPool(5, false);
             var heavyTask = new TaskMock(Wait);
 
             Assert.AreEqual(true, target.Execute(heavyTask, Priority.High));
             Assert.AreEqual(true, target.Execute(heavyTask, Priority.High));
             Assert.AreEqual(true, target.Execute(heavyTask, Priority.High));
             Wait();
-            Assert.AreEqual(1, target.DeferedThreadCount);
+            Assert.AreEqual(2, target.DeferedThreadCount);
             Wait(); // Allowing threads to finish.
 
-            // Now will attemp to reuse it
+            // Now will attemp to reuse it and create one new
+            Assert.AreEqual(true, target.Execute(heavyTask, Priority.High));
             Assert.AreEqual(true, target.Execute(heavyTask, Priority.High));
             Assert.AreEqual(true, target.Execute(heavyTask, Priority.High));
             Assert.AreEqual(true, target.Execute(heavyTask, Priority.High));

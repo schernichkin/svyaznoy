@@ -114,7 +114,7 @@ namespace Svyaznoy.Threading
                 }
                 catch
                 {
-                    ThreadStop();
+                    ThreadTerminate();
                     throw;
                 }
             }
@@ -129,6 +129,25 @@ namespace Svyaznoy.Threading
                 DeferedThreadCount++;
                 if (DeferedThreadCount == MaxThreadCount && Status == ThreadPoolStatus.Stopping)
                 {
+                    Status = ThreadPoolStatus.Stopped;
+                    // Unlocking all threads waiting in the Stop() method.
+                    Monitor.PulseAll(TaskQueue);
+                }
+            }
+        }
+
+        private void ThreadTerminate()
+        {
+            lock (TaskQueue)
+            {
+                DeferedThreadCount++;
+
+                if (TaskQueue.Count > IdleThreadCount)
+                { // Starting new thread in place of thread being terminated if needed..
+                    ThreadNeeded();
+                }
+                else if (TaskQueue.Count == 0 && DeferedThreadCount == MaxThreadCount && Status == ThreadPoolStatus.Stopping)
+                { // or transfering to stopped status if it was last task in the queue and pool in stopping status
                     Status = ThreadPoolStatus.Stopped;
                     // Unlocking all threads waiting in the Stop() method.
                     Monitor.PulseAll(TaskQueue);
