@@ -114,6 +114,16 @@ namespace Svyaznoy.Threading
         }
 
         [TestMethod()]
+        public void TryDequeueTest_ResetInterleaveCounterOnNonPriorityTasks()
+        {
+            var tasksH = Enumerable.Range(0, 3).Select(i => (ITask)new TaskMock()).ToList();
+            var tasksM = new TaskMock();
+            var tasksL = new TaskMock();
+
+
+        }
+
+        [TestMethod()]
         public void DequeueTest_BasicPriority()
         {
             var target = new TaskQueue_3_1_0_Accessor();
