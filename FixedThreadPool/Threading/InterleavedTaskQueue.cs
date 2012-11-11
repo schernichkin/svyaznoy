@@ -4,8 +4,10 @@ using System.Globalization;
 
 namespace Svyaznoy.Threading
 {
-    internal sealed class TaskQueue_3_1_0 : ITaskQueue
+    internal sealed class InterleavedTaskQueue : ITaskQueue
     {
+        private const int INTERLEAVE = 3;
+
         #region ITaskQueue Members
 
         public void Enqueue(ITask task, Priority priority)
@@ -37,7 +39,7 @@ namespace Svyaznoy.Threading
         {
             if (HighPriorityQueue.Count > 0)
             {
-                if (InterleaveCounter >= 3)
+                if (InterleaveCounter >= INTERLEAVE)
                 {
                     InterleaveCounter = 0;
                     return MediumPriorityQueue.Dequeue();

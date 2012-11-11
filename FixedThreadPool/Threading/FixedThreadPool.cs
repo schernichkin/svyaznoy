@@ -7,7 +7,7 @@ namespace Svyaznoy.Threading
     public class FixedThreadPool
     {
         public FixedThreadPool(int maxThreadCount)
-            : this(NewDefaultName(), maxThreadCount, new TaskQueue_3_1_0(), false)
+            : this(NewDefaultName(), maxThreadCount, new InterleavedTaskQueue(), false)
         {
         }
 

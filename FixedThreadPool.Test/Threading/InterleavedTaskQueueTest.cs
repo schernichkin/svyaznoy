@@ -6,12 +6,12 @@ using System.Linq;
 namespace Svyaznoy.Threading
 {
     [TestClass()]
-    public class TaskQueue_3_1_0Test
+    public class InterleavedTaskQueueTest
     {
         [TestMethod()]
         public void ConstructorTest()
         {
-            var target = new TaskQueue_3_1_0_Accessor();
+            var target = new InterleavedTaskQueue_Accessor();
             Assert.AreEqual(0, target.InterleaveCounter);
             AssertIsEmpty(target);
         }
@@ -19,14 +19,14 @@ namespace Svyaznoy.Threading
         [TestMethod()]
         public void TryDequeueTest_NoTask()
         {
-            var target = new TaskQueue_3_1_0_Accessor();
+            var target = new InterleavedTaskQueue_Accessor();
             Assert.AreEqual(null, target.TryDequeue());
         }
 
         [TestMethod()]
         public void EnqueueTest_High()
         {
-            var target = new TaskQueue_3_1_0_Accessor();
+            var target = new InterleavedTaskQueue_Accessor();
             var task = new TaskMock();
             target.Enqueue(task, Priority.High);
             Assert.AreEqual(task, target.HighPriorityQueue.Peek());
@@ -37,7 +37,7 @@ namespace Svyaznoy.Threading
         [TestMethod()]
         public void EnqueueTest_Medium()
         {
-            var target = new TaskQueue_3_1_0_Accessor();
+            var target = new InterleavedTaskQueue_Accessor();
             var task = new TaskMock();
             target.Enqueue(task, Priority.Medium);
             Assert.AreEqual(task, target.MediumPriorityQueue.Peek());
@@ -48,7 +48,7 @@ namespace Svyaznoy.Threading
         [TestMethod()]
         public void EnqueueTest_Low()
         {
-            var target = new TaskQueue_3_1_0_Accessor();
+            var target = new InterleavedTaskQueue_Accessor();
             var task = new TaskMock();
             target.Enqueue(task, Priority.Low);
             Assert.AreEqual(task, target.LowPriorityQueue.Peek());
@@ -59,7 +59,7 @@ namespace Svyaznoy.Threading
         [TestMethod()]
         public void DequeueTest_Interleave()
         {
-            var target = new TaskQueue_3_1_0_Accessor();
+            var target = new InterleavedTaskQueue_Accessor();
             var tasksH = Enumerable.Range(0, 6).Select(i => (ITask)new TaskMock()).ToList();
             var tasksL = Enumerable.Range(0, 2).Select(i => (ITask)new TaskMock()).ToList();
 
@@ -92,7 +92,7 @@ namespace Svyaznoy.Threading
         [TestMethod()]
         public void DequeueTest_NoInterleave()
         {
-            var target = new TaskQueue_3_1_0_Accessor();
+            var target = new InterleavedTaskQueue_Accessor();
             var tasksH = Enumerable.Range(0, 6).Select(i => (ITask)new TaskMock()).ToList();
             
             target.HighPriorityQueue.EnqueueAll(tasksH);
@@ -126,7 +126,7 @@ namespace Svyaznoy.Threading
         [TestMethod()]
         public void DequeueTest_BasicPriority()
         {
-            var target = new TaskQueue_3_1_0_Accessor();
+            var target = new InterleavedTaskQueue_Accessor();
             var taskH = new TaskMock();
             var taskM = new TaskMock();
             var taskL = new TaskMock();
@@ -142,7 +142,7 @@ namespace Svyaznoy.Threading
             AssertIsEmpty(target);
         }
 
-        private void AssertIsEmpty(TaskQueue_3_1_0_Accessor taskQueue)
+        private void AssertIsEmpty(InterleavedTaskQueue_Accessor taskQueue)
         {
             Assert.AreEqual(0, taskQueue.Count);
             Assert.AreEqual(0, taskQueue.HighPriorityQueue.Count);

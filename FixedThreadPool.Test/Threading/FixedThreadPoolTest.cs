@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Threading;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Svyaznoy.Threading
 {
@@ -128,7 +129,7 @@ namespace Svyaznoy.Threading
             AssertIsProperlyStopped(target);
 
             waitersCounter.Wait(); // if thread pool works properly, will never blocked here
-            
+
             if (deferedException != null)
             {
                 throw deferedException;
@@ -152,15 +153,24 @@ namespace Svyaznoy.Threading
         }
 
         [TestMethod()]
-        public void TestWithUnhandledExceptions()
-        {
-            throw new NotImplementedException();
-        }
-
-        [TestMethod()]
         public void BasicSequenceTest()
         {
-            throw new NotImplementedException();
+            var protocol = new List<int>();
+            var target = CreateFixedThreadPool(1, false);
+            
+            target.Execute(new TaskMock(() => { protocol.Add(0); Wait(); }), Priority.High);
+            target.Execute(new TaskMock(() => { protocol.Add(4); Wait(); }), Priority.Low);
+            target.Execute(new TaskMock(() => { protocol.Add(3); Wait(); }), Priority.Medium);
+            target.Execute(new TaskMock(() => { protocol.Add(1); Wait(); }), Priority.High);
+            target.Execute(new TaskMock(() => { protocol.Add(2); Wait(); }), Priority.High);
+            target.Stop();
+
+            AssertIsProperlyStopped(target);
+
+            for (var i = 0; i < 5; i++)
+            {
+                Assert.AreEqual(i, protocol[i]);
+            }
         }
 
         [TestMethod()]
@@ -203,7 +213,7 @@ namespace Svyaznoy.Threading
 
         private FixedThreadPool_Accessor CreateFixedThreadPool(int treadCount, bool forceThreadCreation)
         {
-            var taskQueue = new ITaskQueue_Impl(new PrivateObject(new TaskQueue_3_1_0()));
+            var taskQueue = new ITaskQueue_Impl(new PrivateObject(new InterleavedTaskQueue()));
             return new FixedThreadPool_Accessor(null, treadCount, taskQueue, forceThreadCreation);
         }
     }
