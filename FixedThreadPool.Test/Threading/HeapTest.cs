@@ -5,15 +5,11 @@ using System;
 
 namespace Svyaznoy.Threading
 {
-    /// <summary>
-    ///This is a test class for HeapTest and is intended
-    ///to contain all HeapTest Unit Tests
-    ///</summary>
-    [TestClass()]
+    [TestClass]
     public class HeapTest
     {
         [TestMethod]
-        public void NormalOrder()
+        public void DirectOrder()
         {
             var heap = new Heap_Accessor<int>();
 
@@ -33,7 +29,7 @@ namespace Svyaznoy.Threading
         }
 
         [TestMethod]
-        public void ReverseOrder()
+        public void ReversedOrder()
         {
             var heap = new Heap_Accessor<int>();
 

@@ -6,7 +6,7 @@ using System.Globalization;
 
 namespace Svyaznoy.Threading
 {
-    internal sealed class OrderedTaskQueue_Heap : ITaskQueue
+    public sealed class OrderedTaskHeap : ITaskQueue
     {
         private const int INTERLEAVE = 3;
 

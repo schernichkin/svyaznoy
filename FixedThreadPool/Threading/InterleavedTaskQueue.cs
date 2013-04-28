@@ -4,7 +4,7 @@ using System.Globalization;
 
 namespace Svyaznoy.Threading
 {
-    internal sealed class InterleavedTaskQueue : ITaskQueue
+    public sealed class InterleavedTaskQueue : ITaskQueue
     {
         private const int INTERLEAVE = 3;
 

@@ -213,8 +213,7 @@ namespace Svyaznoy.Threading
 
         private FixedThreadPool_Accessor CreateFixedThreadPool(int treadCount, bool forceThreadCreation)
         {
-            var taskQueue = new ITaskQueue_Impl(new PrivateObject(new InterleavedTaskQueue()));
-            return new FixedThreadPool_Accessor(null, treadCount, taskQueue, forceThreadCreation);
+            return new FixedThreadPool_Accessor(null, treadCount, new InterleavedTaskQueue(), forceThreadCreation);
         }
     }
 }

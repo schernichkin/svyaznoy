@@ -44,7 +44,7 @@
     <Compile Include="Threading\Heap.cs" />
     <Compile Include="Threading\ITask.cs" />
     <Compile Include="Threading\ITaskQueue.cs" />
-    <Compile Include="Threading\OrderedTaskQueue_Heap.cs" />
+    <Compile Include="Threading\OrderedTaskHeap.cs" />
     <Compile Include="Threading\Priority.cs" />
     <Compile Include="Threading\InterleavedTaskQueue.cs" />
     <Compile Include="Threading\ThreadPoolStatus.cs" />

@@ -1,6 +1,6 @@
 ﻿namespace Svyaznoy.Threading
 {
-    internal interface ITaskQueue
+    public interface ITaskQueue
     {
         void Enqueue(ITask task, Priority priority);
         
