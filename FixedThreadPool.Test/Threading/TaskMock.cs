@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Svyaznoy.Threading;
 
 namespace Svyaznoy.Threading
 {
@@ -13,12 +9,38 @@ namespace Svyaznoy.Threading
         {
         }
 
+        public TaskMock(string name)
+            : this()
+        {
+            _Name = name;
+        }
+
         public TaskMock(Action action)
         {
             if (action == null) throw new ArgumentNullException("action");
 
             m_Action = action;
         }
+
+        public override string ToString()
+        {
+            return base.ToString() + (string.IsNullOrEmpty(Name) ? "" : " ( " + Name + ")");
+        }
+
+        #region public string Name
+
+        private readonly string _Name;
+
+        public string Name
+        {
+            [System.Diagnostics.DebuggerStepThroughAttribute]
+            get
+            {
+                return _Name;
+            }
+        }
+
+        #endregion
 
         #region ITask Members
 

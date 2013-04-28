@@ -1,18 +1,21 @@
-﻿using Svyaznoy.Threading;
+﻿using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
-using System.Linq;
-using System;
 
 namespace Svyaznoy.Threading
 {
     [TestClass]
-    public class InterleavedTaskQueueTest : CommonTaskQueueTest<InterleavedTaskQueue>
+    public class WeakTaskQueueTest : CommonTaskQueueTest<WeakTaskQueue>
     {
         [TestMethod]
         public void ConstructorTest()
         {
             CommonConstructorTest();
+        }
+
+        [TestMethod]
+        public void CountTest()
+        {
+            CommonCountTest();
         }
 
         [TestMethod]
@@ -64,28 +67,9 @@ namespace Svyaznoy.Threading
             });
         }
 
-        #region Internal structure test
-
-        [TestMethod]
-        public void CountTest()
+        protected override WeakTaskQueue CreateTaskQueue()
         {
-            RepeatTest(queue =>
-            {
-                queue.Enqueue(new TaskMock(), Priority.High);
-                queue.Enqueue(new TaskMock(), Priority.Medium);
-                queue.Enqueue(new TaskMock(), Priority.Low);
-
-                Assert.AreEqual(3, queue.Count);
-                Assert.AreEqual(queue.Count, );
-
-            });
-        }
-
-        #endregion
-
-        protected override InterleavedTaskQueue CreateTaskQueue()
-        {
-            return new InterleavedTaskQueue();
+            return new WeakTaskQueue();
         }
     }
 }

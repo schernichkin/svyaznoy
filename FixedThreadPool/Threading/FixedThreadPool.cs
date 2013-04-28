@@ -1,16 +1,77 @@
 ﻿using System;
-using System.Threading;
 using System.Globalization;
+using System.Threading;
 
 namespace Svyaznoy.Threading
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <remarks>
+    /// This type is thread safe.
+    /// </remarks>
     public class FixedThreadPool
     {
         public FixedThreadPool(int maxThreadCount)
-            : this(NewDefaultName(), maxThreadCount, new InterleavedTaskQueue(), false)
+            : this(NewDefaultName(), maxThreadCount, () => new StrongTaskQueue(), false)
         {
         }
 
+        /// <summary>
+        /// Create thread pool.
+        /// </summary>
+        /// <param name="name">
+        /// Name of the thread pool.
+        /// 
+        /// <remarks>
+        /// Thread pool will assign underlying threads names, that mind help in debugging.
+        /// </remarks>
+        /// </param>
+        /// <param name="maxThreadCount">
+        /// Maximum threads count.
+        /// </param>
+        /// <param name="taskQueueFactory">
+        /// <see cref="ITaskQueue">ITaskQueue</see> factory function.
+        /// <remarks>
+        /// Provide particular ITaskQueue to change task scheduling strategy.
+        /// Please note that task queue ensures only dequeing order of tasks, task execution itself 
+        /// can be slightly of-order in multithreading environment.
+        /// Task queue should returned by this functions not be thread safe, but it also should not be 
+        /// accessed from anywhere in program outside from the FixedThreadPool instance. Please
+        /// ensure that function returns a new instance of ITaskQueue on each call.
+        /// </remarks>
+        /// </param>
+        /// <param name="forceThreadCreation">
+        /// boolean flag indicating whether create threads in advance or by need.
+        /// </param>
+        public FixedThreadPool(string name, int maxThreadCount, Func<ITaskQueue> taskQueueFactory, bool forceThreadCreation)
+        {
+            if (maxThreadCount <= 0) throw new ArgumentOutOfRangeException("maxThreadCount", "Maximum thread count should be greater than zero.");
+            if (taskQueueFactory == null) throw new ArgumentNullException("taskQueueFactory");
+
+            m_DeferedThreadCount = maxThreadCount;
+            m_MaxThreadCount = maxThreadCount;
+            m_Name = name;
+            m_TaskQueue = taskQueueFactory();
+
+            if (forceThreadCreation)
+            {
+                for (var i = 0; i < MaxThreadCount; i++)
+                {
+                    ThreadNeeded();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Schedule task for execution.
+        /// </summary>
+        /// <param name="task"></param>
+        /// <param name="priority"></param>
+        /// <returns>
+        /// True if task was shedulled succefully, false if tread pull has been stopped or pending 
+        /// stop event.
+        /// </returns>
         public bool Execute(ITask task, Priority priority)
         {
             lock (TaskQueue)
@@ -18,9 +79,9 @@ namespace Svyaznoy.Threading
                 if (Status == ThreadPoolStatus.Running)
                 {
                     // Considering thread pool has an unoccupied thread if the number of 
-                    // thread's waiting for queue event is greater, than task count.
-                    // This is not 100% accurate during the high load, but will prevent  
-                    // unnecessary thread's creation on low load.
+                    // thread's waiting for queue event is greater than task count.
+                    // This is not 100% accurate during in case of high load, but will prevent  
+                    // unnecessary thread's creation.
                     var hasFreeThreads = TaskQueue.Count < IdleThreadCount;
 
                     TaskQueue.Enqueue(task, priority);
@@ -44,6 +105,12 @@ namespace Svyaznoy.Threading
             }
         }
 
+        /// <summary>
+        /// Stop the thread pool.
+        /// </summary>
+        /// <remarks>
+        /// This method will block till all enqeued tasks finished.
+        /// </remarks>
         public void Stop()
         {
             lock (TaskQueue)
@@ -59,33 +126,14 @@ namespace Svyaznoy.Threading
                     {
                         case ThreadPoolStatus.Running:
                             Status = ThreadPoolStatus.Stopping;
-                            // Unlocking worker threads to allow them exit.
+                            // Unlock worker threads to allow them exit.
                             Monitor.PulseAll(TaskQueue);
                             goto case ThreadPoolStatus.Stopping;
                         case ThreadPoolStatus.Stopping:
-                            // Waiting completion signal from worker thread
+                            // Waiting completion signal from the worker thread
                             Monitor.Wait(TaskQueue);
                             break;
                     }
-                }
-            }
-        }
-
-        internal FixedThreadPool(string name, int maxThreadCount, ITaskQueue taskQueue, bool forceThreadCreation)
-        {
-            if (maxThreadCount <= 0) throw new ArgumentOutOfRangeException("maxThreadCount", "Maximum thread count should be greater than zero.");
-            if (taskQueue == null) throw new ArgumentNullException("taskQueue");
-
-            m_DeferedThreadCount = maxThreadCount;
-            m_MaxThreadCount = maxThreadCount;
-            m_Name = name;
-            m_TaskQueue = taskQueue;
-
-            if (forceThreadCreation)
-            {
-                for (var i = 0; i < MaxThreadCount; i++)
-                {
-                    ThreadNeeded();
                 }
             }
         }

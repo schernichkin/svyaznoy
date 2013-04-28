@@ -4,7 +4,23 @@ using System.Globalization;
 
 namespace Svyaznoy.Threading
 {
-    public sealed class InterleavedTaskQueue : ITaskQueue
+    /// <summary>
+    /// Priority task queue which does not maintain strong task order.
+    /// </summary>
+    /// <remarks>
+    /// This queue will return 1 medium priority task per 3 high-priority tasks and 
+    /// will return low priority tasks only if no higher-priority tasks in queue 
+    /// without taking into account enqueuing order.
+    /// 
+    /// E.g. if user enqueued 1 med.-priority task, than 3 high-priority task, 
+    /// first 3 high-priority tasks will be dequeued, than med.-priority task.
+    /// 
+    /// On other hand, if user has enqueded 4 high-priority tasks, and than 1
+    /// med.-priority task, this queue will return 3 high-priority tasks, than
+    /// 1 med.-priority task than last high-priority task despite it was enqueued
+    /// before med.-priority task.
+    /// </remarks>
+    public sealed class WeakTaskQueue : ITaskQueue
     {
         private const int INTERLEAVE = 3;
 

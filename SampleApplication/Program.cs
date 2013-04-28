@@ -48,14 +48,14 @@ namespace SampleApplication
             Thread.CurrentThread.Name = "Main";
             var threadPool = new FixedThreadPool(10);
 
-            Log("Sheduling high priority tasks..");
-            ScheduleTasks(threadPool, 100, Priority.High);
+            Log("Sheduling low priority tasks..");
+            ScheduleTasks(threadPool, 10, Priority.Low);
 
             Log("Sheduling medium priority tasks..");
             ScheduleTasks(threadPool, 50, Priority.Medium);
 
-            Log("Sheduling low priority tasks..");
-            ScheduleTasks(threadPool, 10, Priority.Low);
+            Log("Sheduling high priority tasks..");
+            ScheduleTasks(threadPool, 100, Priority.High);
 
             Log("Waiting for tasks to complete..");
             threadPool.Stop();

@@ -41,12 +41,11 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Threading\FixedThreadPool.cs" />
-    <Compile Include="Threading\Heap.cs" />
     <Compile Include="Threading\ITask.cs" />
     <Compile Include="Threading\ITaskQueue.cs" />
-    <Compile Include="Threading\OrderedTaskHeap.cs" />
     <Compile Include="Threading\Priority.cs" />
-    <Compile Include="Threading\InterleavedTaskQueue.cs" />
+    <Compile Include="Threading\StrongTaskQueue.cs" />
+    <Compile Include="Threading\WeakTaskQueue.cs" />
     <Compile Include="Threading\ThreadPoolStatus.cs" />
   </ItemGroup>
   <ItemGroup>

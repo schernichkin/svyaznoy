@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Svyaznoy.Threading
@@ -29,9 +28,10 @@ namespace Svyaznoy.Threading
                 queue.Enqueue(taskWithPriority.Task, taskWithPriority.Priority);
             }
 
-            foreach (var task in exceptedOrder)
+            foreach (var exceptedTask in exceptedOrder)
             {
-                Assert.AreEqual(task, queue.TryDequeue());
+                var actualTask = queue.TryDequeue();
+                Assert.AreEqual(exceptedTask, actualTask);
             }
         }
 
@@ -60,6 +60,22 @@ namespace Svyaznoy.Threading
             AssertIsEmpty(taskQueue);
         }
 
+        protected void CommonCountTest()
+        {
+            RepeatTest(queue =>
+            {
+                queue.Enqueue(new TaskMock(), Priority.High);
+                queue.Enqueue(new TaskMock(), Priority.Medium);
+                queue.Enqueue(new TaskMock(), Priority.Low);
+
+                Assert.AreEqual(3, queue.Count);
+                queue.TryDequeue();
+                queue.TryDequeue();
+                queue.TryDequeue();
+            });
+        }
+
+
         protected void CommonDequeueNoTasksTest()
         {
             RepeatTest(qeue => Assert.AreEqual(null, qeue.TryDequeue()));
@@ -75,9 +91,9 @@ namespace Svyaznoy.Threading
         /// </remarks>
         protected void CommonEnqueueDequeueTest_LowMediumHigh()
         {
-            var highPriorityTasks = Enumerable.Range(0, 10).Select(i => (ITask)new TaskMock()).ToList();
-            var mediumPriorityTasks = Enumerable.Range(0, 5).Select(i => (ITask)new TaskMock()).ToList();
-            var lowPriorityTasks = Enumerable.Range(0, 5).Select(i => (ITask)new TaskMock()).ToList();
+            var highPriorityTasks = Enumerable.Range(0, 10).Select(i => (ITask)new TaskMock("H_" + i.ToString())).ToList();
+            var mediumPriorityTasks = Enumerable.Range(0, 5).Select(i => (ITask)new TaskMock("M_" + i.ToString())).ToList();
+            var lowPriorityTasks = Enumerable.Range(0, 5).Select(i => (ITask)new TaskMock("L_" + i.ToString())).ToList();
 
             RepeatTest(queue =>
                 {

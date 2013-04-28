@@ -1,9 +1,7 @@
-﻿using Svyaznoy.Threading;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Threading;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Svyaznoy.Threading
 {
@@ -213,7 +211,7 @@ namespace Svyaznoy.Threading
 
         private FixedThreadPool_Accessor CreateFixedThreadPool(int treadCount, bool forceThreadCreation)
         {
-            return new FixedThreadPool_Accessor(null, treadCount, new InterleavedTaskQueue(), forceThreadCreation);
+            return new FixedThreadPool_Accessor(null, treadCount, () => new WeakTaskQueue(), forceThreadCreation);
         }
     }
 }
